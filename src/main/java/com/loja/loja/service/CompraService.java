@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.loja.loja.DTO.CompraDTO;
 import com.loja.loja.model.Compra;
+import com.loja.loja.repository.ClienteRepository;
 import com.loja.loja.repository.CompraRepository;
 import com.loja.loja.repository.ProdutoRepository;
 
@@ -20,6 +21,8 @@ public class CompraService {
     @Autowired
     private CompraRepository compraRepository;
 
+    @Autowired ClienteRepository clienteRepository;
+
     @Autowired
     private ModelMapper modelMapper;
 
@@ -30,16 +33,18 @@ public class CompraService {
 
     //Cliente buying product.
     public String buyProduto(CompraDTO dtoCompra) {
-        produtoRepository.findById(dtoCompra.getProduto()).map(buy -> {
-            Integer getEstoque = buy.getQuantidade();
+        clienteRepository.findById(dtoCompra.getCliente()).map(cliente -> {
+            produtoRepository.findById(dtoCompra.getProduto()).map(produto -> {
+            Integer getEstoque = produto.getQuantidade();
             Integer getQuantidadeCompra = dtoCompra.getQuantidade();
                 if(getEstoque >= getQuantidadeCompra) {
                     Compra compra = new Compra();
                     Integer cal = getEstoque - getQuantidadeCompra;
-                    buy.setQuantidade(cal);
-                    produtoRepository.save(buy);
-                    compra.setProduto(buy);
+                    produto.setQuantidade(cal);
+                    produtoRepository.save(produto);
+                    compra.setProduto(produto);
                     compra.setQuantidade(getQuantidadeCompra);
+                    compra.setCliente(cliente);
                     compraRepository.save(compra);
                     //return "Sua compra foi efetuada com sucesso!";
                 } else {
@@ -47,6 +52,8 @@ public class CompraService {
                 }
                 return Void.TYPE;
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado"));
+            return "Compra efetuada com sucesso"; 
+        });
         return "Compra efetuada com sucesso";
     }
 }

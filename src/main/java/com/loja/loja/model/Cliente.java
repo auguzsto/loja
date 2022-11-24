@@ -8,24 +8,21 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 import lombok.Data;
 
 @Entity
 @Data
-public class Compra {
+public class Cliente {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
-    private Produto produto;
+    private String login;
 
-    private Integer quantidade;
-
-    @ManyToOne
-    private Cliente cliente;
+    private String nome;
     
+    @OneToMany(mappedBy = "cliente")
+    private List<Compra> compra;
 }
