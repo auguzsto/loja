@@ -52,8 +52,8 @@ public class CompraService {
                 }
                 return Void.TYPE;
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado"));
-            return "Compra efetuada com sucesso"; 
-        });
+            return cliente;
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado"));
         return "Compra efetuada com sucesso";
     }
 }
