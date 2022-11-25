@@ -16,8 +16,13 @@ public class PedidoDTO {
 
     private Integer id;
     private Integer idCliente;
+
     @JsonFormat(pattern="dd/MM/yyyy HH:mm")
     private LocalDateTime data;
+
+    @JsonFormat(pattern="dd/MM/yyyy HH:mm")
+    private LocalDateTime dataEntrega;
+    
     private String status;
     private List<ItensPedidoDTO> itensPedido;
     

@@ -27,6 +27,8 @@ public class Pedido {
 
     private LocalDateTime data;
 
+    private LocalDateTime dataEntrega;
+
     private String status;
 
     @OneToMany(mappedBy = "pedido")
