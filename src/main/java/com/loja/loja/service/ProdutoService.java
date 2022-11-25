@@ -49,7 +49,7 @@ public class ProdutoService {
         produto.setVendedor(vendedor);
         produtoRepository.save(produto);
         return Void.TYPE;
-        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do vendedor inválido"));
         return produto.getId();
     }
     

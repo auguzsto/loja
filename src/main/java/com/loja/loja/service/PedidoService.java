@@ -1,5 +1,7 @@
 package com.loja.loja.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +55,8 @@ public class PedidoService {
         Cliente cliente = clienteRepository.findById(dto.getIdCliente()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do cliente inválido"));
         Pedido pedido = new Pedido();
         pedido.setCliente(cliente);
+        pedido.setData(LocalDateTime.now());
+        pedido.setStatus("Em processo");
         List<ItensPedido> itensPedido = salvarItensPedido(pedido, dto.getItensPedido());
         pedidoRepository.save(pedido);
         itensPedidoRepository.saveAll(itensPedido);

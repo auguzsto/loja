@@ -1,7 +1,10 @@
 package com.loja.loja.model;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -21,6 +24,10 @@ public class Pedido {
     
     @ManyToOne
     private Cliente cliente;
+
+    private LocalDateTime data;
+
+    private String status;
 
     @OneToMany(mappedBy = "pedido")
     private List<ItensPedido> itensPedido;
