@@ -63,8 +63,14 @@ public class PedidoService {
             ItensPedido itensPedido = new ItensPedido();
             itensPedido.setPedido(pedido);
             itensPedido.setProduto(produto);
-            itensPedido.setQuantidade(dtoItens.getQuantidadeProduto());
-            return itensPedido;            
+            Integer quantidadeProdutoEstoque = produto.getQuantidade();
+            Integer quantidadeProdutoPedido = dtoItens.getQuantidadeProduto();
+                if(quantidadeProdutoEstoque >= quantidadeProdutoPedido) {
+                Integer atualizarQuantidade = quantidadeProdutoEstoque - quantidadeProdutoPedido;
+                produto.setQuantidade(atualizarQuantidade);
+                produtoRepository.save(produto);
+            }
+            return itensPedido;
         }).collect(Collectors.toList());
     }
 
