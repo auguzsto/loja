@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.loja.loja.DTO.ItensPedidoDTO;
@@ -47,7 +48,7 @@ public class PedidoService {
         return modelMapper.map(itensPedido, ItensPedidoDTO.class);
     }
 
-    
+    @Transactional
     public void salvarPedido(PedidoDTO dto) {
         Cliente cliente = clienteRepository.findById(dto.getIdCliente()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do cliente inválido"));
         Pedido pedido = new Pedido();
@@ -64,11 +65,14 @@ public class PedidoService {
             itensPedido.setPedido(pedido);
             itensPedido.setProduto(produto);
             Integer quantidadeProdutoEstoque = produto.getQuantidade();
-            Integer quantidadeProdutoPedido = dtoItens.getQuantidadeProduto();
+            Integer quantidadeProdutoPedido = dtoItens.getQuantidade();
                 if(quantidadeProdutoEstoque >= quantidadeProdutoPedido) {
                 Integer atualizarQuantidade = quantidadeProdutoEstoque - quantidadeProdutoPedido;
                 produto.setQuantidade(atualizarQuantidade);
+                itensPedido.setQuantidade(quantidadeProdutoPedido);
                 produtoRepository.save(produto);
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O produto não tem quantidade de estoque para quantidade de produto pedido. Verifique a quantidade disponível para venda deste produto.");
             }
             return itensPedido;
         }).collect(Collectors.toList());
