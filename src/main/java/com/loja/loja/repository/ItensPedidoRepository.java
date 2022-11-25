@@ -3,9 +3,9 @@ package com.loja.loja.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.loja.loja.model.Compra;
+import com.loja.loja.model.ItensPedido;
 
 @Repository
-public interface CompraRepository extends JpaRepository<Compra, Integer>{
+public interface ItensPedidoRepository extends JpaRepository<ItensPedido, Integer>{
     
 }
