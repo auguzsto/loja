@@ -1,7 +1,12 @@
 package com.loja.loja.service;
 
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -35,4 +40,30 @@ public class ClienteService {
         clienteRepository.save(cliente);
         return cliente.getId();
     }
+
+    public String updateCliente(Integer id, ClienteDTO dto) {
+        clienteRepository.findById(id).map(cliente -> {
+            
+            if(dto.getLogin() != null && !dto.getLogin().equals(cliente.getLogin())) cliente.setLogin(dto.getLogin());
+            if(dto.getNome() != null && !dto.getNome().equals(cliente.getNome())) cliente.setNome(dto.getNome());
+
+            return clienteRepository.save(cliente);
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do cliente inválido."));
+
+        return "Seus dados foram atualizados";
+    }
+
+    public String deleteCliente(Integer id) {
+        clienteRepository.findById(id).map(cliente -> {
+            return clienteRepository.save(cliente);
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do cliente inválido"));
+
+        return "Cliente " +id+ " deletado!";
+    }
+
+    public List<ClienteDTO> getCliente(Cliente cliente) {
+        ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreCase().withStringMatcher(StringMatcher.CONTAINING);
+        Example<Cliente> c = Example.of(cliente, matcher);
+        return clienteRepository.findAll(c).stream().map(this::toClienteDTO).toList();
+    } 
 }
