@@ -2,6 +2,7 @@ package com.loja.loja.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,6 +60,14 @@ public class PedidoService {
         pedido.setStatus("Em processo");
         List<ItensPedido> itensPedido = salvarItensPedido(pedido, dto.getItensPedido());
         pedidoRepository.save(pedido);
+        long quantidadeDeItens = itensPedido.stream().count();
+            for(int c = 0; c < quantidadeDeItens; c++){
+                long valorTotalDeItens = itensPedido.stream().mapToInt( i -> {
+                    return i.getValor();
+                }).sum();
+                pedido.setValorTotal(valorTotalDeItens);
+
+            }
         itensPedidoRepository.saveAll(itensPedido);
     }
 
@@ -72,7 +81,9 @@ public class PedidoService {
             Integer quantidadeProdutoPedido = dtoItens.getQuantidade();
                 if(quantidadeProdutoEstoque >= quantidadeProdutoPedido) {
                 Integer atualizarQuantidade = quantidadeProdutoEstoque - quantidadeProdutoPedido;
+                Integer valorItens = produto.getValor() * dtoItens.getQuantidade();
                 produto.setQuantidade(atualizarQuantidade);
+                itensPedido.setValor(valorItens);
                 itensPedido.setQuantidade(quantidadeProdutoPedido);
                 produtoRepository.save(produto);
             } else {

@@ -23,6 +23,8 @@ public class PedidoDTO {
     @JsonFormat(pattern="dd/MM/yyyy HH:mm")
     private LocalDateTime dataEntrega;
     
+    private Integer valorTotal;
+
     private String status;
     private List<ItensPedidoDTO> itensPedido;
     

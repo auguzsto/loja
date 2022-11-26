@@ -31,6 +31,8 @@ public class Pedido {
 
     private String status;
 
+    private long valorTotal;
+
     @OneToMany(mappedBy = "pedido")
     private List<ItensPedido> itensPedido;
     
