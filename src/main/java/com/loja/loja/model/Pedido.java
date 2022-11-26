@@ -33,6 +33,8 @@ public class Pedido {
 
     private long valorTotal;
 
+    private String formaPagamento;
+
     @OneToMany(mappedBy = "pedido")
     private List<ItensPedido> itensPedido;
     

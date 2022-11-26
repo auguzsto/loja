@@ -24,8 +24,8 @@ public class PedidoDTO {
     private LocalDateTime dataEntrega;
     
     private Integer valorTotal;
-
     private String status;
+    private String formaPagamento;
     private List<ItensPedidoDTO> itensPedido;
     
 }

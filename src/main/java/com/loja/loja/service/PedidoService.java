@@ -58,6 +58,7 @@ public class PedidoService {
         pedido.setCliente(cliente);
         pedido.setData(LocalDateTime.now());
         pedido.setStatus("Em processo");
+        pedido.setFormaPagamento(dto.getFormaPagamento());
         List<ItensPedido> itensPedido = salvarItensPedido(pedido, dto.getItensPedido());
         pedidoRepository.save(pedido);
         long quantidadeDeItens = itensPedido.stream().count();
@@ -66,7 +67,6 @@ public class PedidoService {
                     return i.getValor();
                 }).sum();
                 pedido.setValorTotal(valorTotalDeItens);
-
             }
         itensPedidoRepository.saveAll(itensPedido);
     }
