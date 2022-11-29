@@ -39,6 +39,14 @@ public class VendedorService {
         Vendedor vendedor = new Vendedor();
         vendedor.setNome(dto.getNome());
         vendedor.setCpf(dto.getCpf());
+        if(dto.getCpf().length() == 11) { 
+            vendedorRepository.findByCpf(dto.getCpf()).map(foundVendedor -> {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF já cadastrado.");
+            });
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF deve conter 11 dígitos.");
+        }
+        
         vendedorRepository.save(vendedor);
     }
 
