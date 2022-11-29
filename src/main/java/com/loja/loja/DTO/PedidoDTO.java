@@ -1,5 +1,6 @@
 package com.loja.loja.DTO;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +24,7 @@ public class PedidoDTO {
     @JsonFormat(pattern="dd/MM/yyyy HH:mm")
     private LocalDateTime dataEntrega;
     
-    private Integer valorTotal;
+    private BigDecimal valorTotal;
     private String status;
     private String formaPagamento;
     private List<ItensPedidoDTO> itensPedido;

@@ -1,5 +1,7 @@
 package com.loja.loja.DTO;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +12,6 @@ public class ItensPedidoDTO {
     private Integer idProduto;
     private String nomeProduto;
     private Integer quantidade;
-    private Integer valor;
+    private BigDecimal valor;
 
 }

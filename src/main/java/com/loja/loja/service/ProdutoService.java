@@ -52,5 +52,25 @@ public class ProdutoService {
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do vendedor inválido"));
         return produto.getId();
     }
+
+    public void updateProduto(Integer id, ProdutoDTO dto) {
+        produtoRepository.findById(id).map(produto -> {
+
+            if(dto.getNome() != null && !produto.getNome().equals(dto.getNome())) produto.setNome(dto.getNome());
+            if(dto.getValor() != null && !produto.getValor().equals(dto.getValor())) produto.setValor(dto.getValor());
+            if(dto.getQuantidade() != null && !produto.getQuantidade().equals(dto.getQuantidade())) produto.setQuantidade(dto.getQuantidade());
+            return produtoRepository.save(produto);
+
+        }).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do produto inválido."));
+    }
+
+    public void deleteProduto(Integer id) {
+        produtoRepository.findById(id).map(produto -> {
+            produtoRepository.delete(produto);
+            return produto;
+        }).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do produto inválido"));
+    }
     
 }

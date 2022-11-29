@@ -1,9 +1,12 @@
 package com.loja.loja.service;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -63,9 +66,9 @@ public class PedidoService {
         pedidoRepository.save(pedido);
         long quantidadeDeItens = itensPedido.stream().count();
             for(int c = 0; c < quantidadeDeItens; c++){
-                long valorTotalDeItens = itensPedido.stream().mapToInt( i -> {
+                BigDecimal valorTotalDeItens = itensPedido.stream().map( i -> {
                     return i.getValor();
-                }).sum();
+                }).reduce(BigDecimal.ZERO, BigDecimal::add);
                 pedido.setValorTotal(valorTotalDeItens);
             }
         itensPedidoRepository.saveAll(itensPedido);
@@ -73,7 +76,8 @@ public class PedidoService {
 
     public List<ItensPedido> salvarItensPedido(Pedido pedido, List<ItensPedidoDTO> itens) {
         return itens.stream().map(dtoItens -> {
-            Produto produto = produtoRepository.findById(dtoItens.getIdProduto()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do produto inválido"));
+            Produto produto = produtoRepository.findById(dtoItens.getIdProduto()).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do produto inválido"));
             ItensPedido itensPedido = new ItensPedido();
             itensPedido.setPedido(pedido);
             itensPedido.setProduto(produto);
@@ -81,7 +85,7 @@ public class PedidoService {
             Integer quantidadeProdutoPedido = dtoItens.getQuantidade();
                 if(quantidadeProdutoEstoque >= quantidadeProdutoPedido) {
                 Integer atualizarQuantidade = quantidadeProdutoEstoque - quantidadeProdutoPedido;
-                Integer valorItens = produto.getValor() * dtoItens.getQuantidade();
+                BigDecimal valorItens = produto.getValor().multiply(new BigDecimal(dtoItens.getQuantidade()));
                 produto.setQuantidade(atualizarQuantidade);
                 itensPedido.setValor(valorItens);
                 itensPedido.setQuantidade(quantidadeProdutoPedido);

@@ -1,5 +1,6 @@
 package com.loja.loja.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,7 +32,7 @@ public class Pedido {
 
     private String status;
 
-    private long valorTotal;
+    private BigDecimal valorTotal;
 
     private String formaPagamento;
 

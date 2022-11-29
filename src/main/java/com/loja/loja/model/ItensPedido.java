@@ -1,5 +1,7 @@
 package com.loja.loja.model;
 
+import java.math.BigDecimal;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -22,7 +24,7 @@ public class ItensPedido {
     @ManyToOne
     private Produto produto;
 
-    private Integer valor;
+    private BigDecimal valor;
 
     private Integer quantidade;
 

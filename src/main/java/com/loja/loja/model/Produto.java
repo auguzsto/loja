@@ -1,5 +1,6 @@
 package com.loja.loja.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -25,7 +26,7 @@ public class Produto {
 
     private Integer quantidade;
 
-    private Integer valor;
+    private BigDecimal valor;
 
     @ManyToOne
     private Vendedor vendedor;
