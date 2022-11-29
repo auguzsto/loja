@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.loja.loja.DTO.VendedorDTO;
 import com.loja.loja.model.Vendedor;
@@ -38,5 +40,23 @@ public class VendedorService {
         vendedor.setNome(dto.getNome());
         vendedor.setCpf(dto.getCpf());
         vendedorRepository.save(vendedor);
+    }
+
+    public void updateVendedor(Integer id, VendedorDTO dto) {
+        vendedorRepository.findById(id).map(vendedor -> {
+            
+            if(dto.getNome() != null && !vendedor.getNome().equals(dto.getNome())) vendedor.setNome(dto.getNome());
+            return vendedorRepository.save(vendedor);
+
+        }).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do vendedor inválido"));
+    }
+
+    public void deleteVendedor(Integer id) {
+        vendedorRepository.findById(id).map(vendedor -> {
+            vendedorRepository.delete(vendedor);
+            return vendedor;
+        }).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do vendedor inválido"));
     }
 }
