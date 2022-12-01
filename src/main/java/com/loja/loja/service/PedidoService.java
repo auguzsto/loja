@@ -1,10 +1,7 @@
 package com.loja.loja.service;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -85,9 +82,9 @@ public class PedidoService {
             Integer quantidadeProdutoPedido = dtoItens.getQuantidade();
                 if(quantidadeProdutoEstoque >= quantidadeProdutoPedido) {
                 Integer atualizarQuantidade = quantidadeProdutoEstoque - quantidadeProdutoPedido;
-                BigDecimal valorItens = produto.getValor().multiply(new BigDecimal(dtoItens.getQuantidade()));
+                //BigDecimal valorItens = produto.getValor().multiply(new BigDecimal(dtoItens.getQuantidade()));
                 produto.setQuantidade(atualizarQuantidade);
-                itensPedido.setValor(valorItens);
+                itensPedido.setValor(calcularValorItens(produto.getValor(), dtoItens.getQuantidade()));
                 itensPedido.setQuantidade(quantidadeProdutoPedido);
                 produtoRepository.save(produto);
             } else {
@@ -95,6 +92,55 @@ public class PedidoService {
             }
             return itensPedido;
         }).collect(Collectors.toList());
+    }
+
+    public void updatePedido(Integer id, PedidoDTO dto) {
+        pedidoRepository.findById(id).map(pedido -> {
+            
+            if(dto.getStatus() != null && !pedido.getStatus().equals(dto.getStatus())) pedido.setStatus(dto.getStatus());
+            if(dto.getStatus().equals("Finalizado")) pedido.setDataEntrega(LocalDateTime.now());
+            if(dto.getFormaPagamento() != null && !pedido.getFormaPagamento().equals(dto.getFormaPagamento())) pedido.setFormaPagamento(dto.getFormaPagamento());
+            return pedidoRepository.save(pedido);
+            
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do pedido inválido"));
+        
+    }
+    
+    public BigDecimal calcularValorItens(BigDecimal valor, Integer quantidade) {
+        return valor.multiply(new BigDecimal(quantidade));
+    }
+
+    public List<ItensPedido> updateItensPedido(Integer id, List<ItensPedido> itens) {
+       return itens.stream().map(i -> {
+        pedidoRepository.findById(id).map(pedido -> {
+            pedido.getItensPedido().stream().map(itensPedido -> {
+                itensPedidoRepository.findById(i.getId()).map(itensGet -> {
+                    Produto produto = itensGet.getProduto();
+                    long quantidadeDeItens = pedido.getItensPedido().stream().count();
+                    for(int c = 0; c < quantidadeDeItens; c++){
+                        BigDecimal valorTotalDeItens = pedido.getItensPedido().stream().map( valores -> {
+                            return valores.getValor();
+                        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                        pedido.setValorTotal(valorTotalDeItens);
+                    }
+                    if(produto.getQuantidade() >= i.getQuantidade()) {
+                        itensGet.setQuantidade(i.getQuantidade());
+                        itensGet.setValor(calcularValorItens(produto.getValor(), i.getQuantidade()));
+                        produto.setQuantidade(produto.getQuantidade() - i.getQuantidade());
+                    } else {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não está quantidade no estoque");
+                    }
+                    itensPedidoRepository.save(itensPedido);
+                    return itensPedidoRepository.saveAll(pedido.getItensPedido());
+                }).orElseThrow(
+                    () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                return itensPedido;
+            }).collect(Collectors.toList());
+            return pedidoRepository.save(pedido);
+        });
+
+        return i;
+       }).collect(Collectors.toList());
     }
 
     public List<PedidoDTO> listarPedido(Pedido pedido){
