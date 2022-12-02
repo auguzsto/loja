@@ -124,23 +124,29 @@ public class PedidoService {
                         pedido.setValorTotal(valorTotalDeItens);
                     }
                     if(produto.getQuantidade() >= i.getQuantidade()) {
-                        itensGet.setQuantidade(i.getQuantidade());
                         itensGet.setValor(calcularValorItens(produto.getValor(), i.getQuantidade()));
                         produto.setQuantidade(produto.getQuantidade() - i.getQuantidade());
+                        itensGet.setQuantidade(i.getQuantidade());
                     } else {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não está quantidade no estoque");
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há esta quantidade no estoque");
                     }
-                    itensPedidoRepository.save(itensPedido);
-                    return itensPedidoRepository.saveAll(pedido.getItensPedido());
+                    return itensPedidoRepository.save(itensPedido);
                 }).orElseThrow(
                     () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
                 return itensPedido;
             }).collect(Collectors.toList());
-            return pedidoRepository.save(pedido);
+            pedidoRepository.save(pedido);
+            return itensPedidoRepository.saveAll(pedido.getItensPedido());
         });
-
         return i;
        }).collect(Collectors.toList());
+    }
+
+    public void deletePedido(Integer id) {
+        pedidoRepository.findById(id).map(pedido -> {
+            pedidoRepository.deleteById(id);
+            return pedido;
+        }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do pedido inválido."));
     }
 
     public List<PedidoDTO> listarPedido(Pedido pedido){

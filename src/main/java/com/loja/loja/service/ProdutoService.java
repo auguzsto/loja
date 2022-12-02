@@ -67,7 +67,7 @@ public class ProdutoService {
 
     public void deleteProduto(Integer id) {
         produtoRepository.findById(id).map(produto -> {
-            produtoRepository.delete(produto);
+            produtoRepository.deleteById(id);
             return produto;
         }).orElseThrow(
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do produto inválido"));

@@ -55,7 +55,8 @@ public class ClienteService {
 
     public String deleteCliente(Integer id) {
         clienteRepository.findById(id).map(cliente -> {
-            return clienteRepository.save(cliente);
+            clienteRepository.deleteById(id);
+            return cliente;
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do cliente inválido"));
 
         return "Cliente " +id+ " deletado!";
