@@ -60,14 +60,8 @@ public class PedidoService {
         pedido.setStatus("Em processo");
         pedido.setFormaPagamento(dto.getFormaPagamento());
         List<ItensPedido> itensPedido = salvarItensPedido(pedido, dto.getItensPedido());
+        pedido.setValorTotal(calcularValorTotalNovoPedido(itensPedido));
         pedidoRepository.save(pedido);
-        long quantidadeDeItens = itensPedido.stream().count();
-            for(int c = 0; c < quantidadeDeItens; c++){
-                BigDecimal valorTotalDeItens = itensPedido.stream().map( i -> {
-                    return i.getValor();
-                }).reduce(BigDecimal.ZERO, BigDecimal::add);
-                pedido.setValorTotal(valorTotalDeItens);
-            }
         itensPedidoRepository.saveAll(itensPedido);
     }
 
@@ -107,24 +101,6 @@ public class PedidoService {
 
     }
 
-    public BigDecimal calcularValorItens(BigDecimal valor, Integer quantidade) {
-        return valor.multiply(new BigDecimal(quantidade));
-    }
-
-    public BigDecimal calcularValorTotalPedido(Integer idPedido) {
-        Pedido pedido = pedidoRepository.findById(idPedido).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do pedido inválido"));
-        BigDecimal valorTotalPedido = new BigDecimal("0.2");
-        long quantidade = pedido.getItensPedido().stream().count();
-        for(int c = 0; c < quantidade; c++) {
-            valorTotalPedido = pedido.getItensPedido().stream().map(valor -> {
-                return valor.getValor();
-            }).reduce(BigDecimal.ZERO, BigDecimal::add);
-        }
-
-        return valorTotalPedido;
-    }
-
     public List<ItensPedido> updateItensPedido(Integer idPedido, ItensPedidoDTO dtoItem, Integer id) {
         Pedido pedido = pedidoRepository.findById(idPedido).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do pedido inválido."));
@@ -142,7 +118,7 @@ public class PedidoService {
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há esta quantidade no estoque");
             }
-            pedido.setValorTotal(calcularValorTotalPedido(pedido.getId()));
+            pedido.setValorTotal(calcularValorTotalPedido(pedido));
             return itensPedidoRepository.save(itensPedido);
         }).collect(Collectors.toList());
 
@@ -158,6 +134,35 @@ public class PedidoService {
 
     public List<PedidoDTO> listarPedido(Pedido pedido){
         return pedidoRepository.findAll().stream().map(this::toPedidoDTO).collect(Collectors.toList());
+    }
+
+    //Operational functions.
+    public BigDecimal calcularValorItens(BigDecimal valor, Integer quantidade) {
+        return valor.multiply(new BigDecimal(quantidade));
+    }
+
+    public BigDecimal calcularValorTotalPedido(Pedido pedido) {
+        BigDecimal valorTotalPedido = new BigDecimal("0.2");
+        long quantidade = pedido.getItensPedido().stream().count();
+        for(int c = 0; c < quantidade; c++) {
+            valorTotalPedido = pedido.getItensPedido().stream().map(valor -> {
+                return valor.getValor();
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        return valorTotalPedido;
+    }
+
+    public BigDecimal calcularValorTotalNovoPedido(List<ItensPedido> i) {
+        BigDecimal valorTotalNovoPedido = new BigDecimal("0.2");
+        long quantidade = i.stream().count();
+        for(int c = 0; c < quantidade; c++) {
+            valorTotalNovoPedido = i.stream().map(valor -> {
+                return valor.getValor();
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        return valorTotalNovoPedido;
     }
 
  
