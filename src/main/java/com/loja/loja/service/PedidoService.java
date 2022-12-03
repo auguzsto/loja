@@ -3,7 +3,6 @@ package com.loja.loja.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -53,7 +52,8 @@ public class PedidoService {
 
     @Transactional
     public void salvarPedido(PedidoDTO dto) {
-        Cliente cliente = clienteRepository.findById(dto.getIdCliente()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do cliente inválido"));
+        Cliente cliente = clienteRepository.findById(dto.getIdCliente()).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do cliente inválido"));
         Pedido pedido = new Pedido();
         pedido.setCliente(cliente);
         pedido.setData(LocalDateTime.now());
@@ -71,6 +71,7 @@ public class PedidoService {
         itensPedidoRepository.saveAll(itensPedido);
     }
 
+    @Transactional
     public List<ItensPedido> salvarItensPedido(Pedido pedido, List<ItensPedidoDTO> itens) {
         return itens.stream().map(dtoItens -> {
             Produto produto = produtoRepository.findById(dtoItens.getIdProduto()).orElseThrow(
@@ -88,7 +89,7 @@ public class PedidoService {
                 itensPedido.setQuantidade(quantidadeProdutoPedido);
                 produtoRepository.save(produto);
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O produto não tem quantidade de estoque para quantidade de produto pedido. Verifique a quantidade disponível para venda deste produto.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há esta quantidade no estoque.");
             }
             return itensPedido;
         }).collect(Collectors.toList());
@@ -96,50 +97,48 @@ public class PedidoService {
 
     public void updatePedido(Integer id, PedidoDTO dto) {
         pedidoRepository.findById(id).map(pedido -> {
-            
+
             if(dto.getStatus() != null && !pedido.getStatus().equals(dto.getStatus())) pedido.setStatus(dto.getStatus());
             if(dto.getStatus().equals("Finalizado")) pedido.setDataEntrega(LocalDateTime.now());
             if(dto.getFormaPagamento() != null && !pedido.getFormaPagamento().equals(dto.getFormaPagamento())) pedido.setFormaPagamento(dto.getFormaPagamento());
             return pedidoRepository.save(pedido);
-            
+
         }).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do pedido inválido"));
-        
+
     }
-    
+
     public BigDecimal calcularValorItens(BigDecimal valor, Integer quantidade) {
         return valor.multiply(new BigDecimal(quantidade));
     }
 
-    public List<ItensPedido> updateItensPedido(Integer id, List<ItensPedido> itens) {
-       return itens.stream().map(i -> {
-        pedidoRepository.findById(id).map(pedido -> {
-            pedido.getItensPedido().stream().map(itensPedido -> {
-                itensPedidoRepository.findById(i.getId()).map(itensGet -> {
-                    Produto produto = itensGet.getProduto();
-                    long quantidadeDeItens = pedido.getItensPedido().stream().count();
-                    for(int c = 0; c < quantidadeDeItens; c++){
-                        BigDecimal valorTotalDeItens = pedido.getItensPedido().stream().map( valores -> {
-                            return valores.getValor();
-                        }).reduce(BigDecimal.ZERO, BigDecimal::add);
-                        pedido.setValorTotal(valorTotalDeItens);
-                    }
-                    if(produto.getQuantidade() >= i.getQuantidade()) {
-                        itensGet.setValor(calcularValorItens(produto.getValor(), i.getQuantidade()));
-                        produto.setQuantidade(produto.getQuantidade() - i.getQuantidade());
-                        itensGet.setQuantidade(i.getQuantidade());
-                    } else {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há esta quantidade no estoque");
-                    }
-                    return itensPedidoRepository.save(itensPedido);
-                }).orElseThrow(
-                    () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    public List<ItensPedido> updateItensPedido(Integer idPedido, ItensPedidoDTO dtoItem, Integer id) {
+        Pedido pedido = pedidoRepository.findById(idPedido).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do pedido inválido."));
+        itensPedidoRepository.findById(id).stream().map(itensPedido -> {
+            Produto produto = itensPedido.getProduto();
+            if(dtoItem.getQuantidade() != null && !itensPedido.getQuantidade().equals(dtoItem.getQuantidade())) {
+                itensPedido.setQuantidade(dtoItem.getQuantidade());
+            } else {
                 return itensPedido;
-            }).collect(Collectors.toList());
-            pedidoRepository.save(pedido);
-            return itensPedidoRepository.saveAll(pedido.getItensPedido());
-        });
-        return i;
-       }).collect(Collectors.toList());
+            }
+            if(produto.getQuantidade() >= dtoItem.getQuantidade()) {
+                itensPedido.setValor(calcularValorItens(produto.getValor(), dtoItem.getQuantidade()));
+                produto.setQuantidade(produto.getQuantidade() - dtoItem.getQuantidade());
+                itensPedido.setQuantidade(dtoItem.getQuantidade());
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há esta quantidade no estoque");
+            }
+            long quantidadeDeItens = pedido.getItensPedido().stream().count();
+            for(int c = 0; c < quantidadeDeItens; c++){
+                BigDecimal valorTotalDeItens = pedido.getItensPedido().stream().map( valor -> {
+                    return valor.getValor();
+                }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                pedido.setValorTotal(valorTotalDeItens);
+            }
+            return itensPedidoRepository.save(itensPedido);
+        }).collect(Collectors.toList());
+
+        return pedido.getItensPedido();
     }
 
     public void deletePedido(Integer id) {

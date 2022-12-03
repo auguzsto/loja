@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.loja.loja.DTO.ItensPedidoDTO;
 import com.loja.loja.DTO.PedidoDTO;
-import com.loja.loja.model.ItensPedido;
 import com.loja.loja.model.Pedido;
 import com.loja.loja.service.PedidoService;
 
@@ -31,10 +30,10 @@ public class PedidoController {
         pedidoService.updatePedido(id, dto);
     }
 
-    @PatchMapping("/{id}/itens")
+    @PatchMapping("/{idPedido}/item/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateItensPedido(@PathVariable Integer id, @RequestBody List<ItensPedido> itens) {
-        pedidoService.updateItensPedido(id, itens);
+    public void updateItensPedido(@PathVariable Integer idPedido, @RequestBody ItensPedidoDTO dto, @PathVariable Integer id) {
+        pedidoService.updateItensPedido(idPedido, dto, id);
     }
 
     @DeleteMapping("/{id}")
