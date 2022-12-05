@@ -73,18 +73,10 @@ public class PedidoService {
             ItensPedido itensPedido = new ItensPedido();
             itensPedido.setPedido(pedido);
             itensPedido.setProduto(produto);
-            Integer quantidadeProdutoEstoque = produto.getQuantidade();
-            Integer quantidadeProdutoPedido = dtoItens.getQuantidade();
-                if(quantidadeProdutoEstoque >= quantidadeProdutoPedido) {
-                Integer atualizarQuantidade = quantidadeProdutoEstoque - quantidadeProdutoPedido;
-                //BigDecimal valorItens = produto.getValor().multiply(new BigDecimal(dtoItens.getQuantidade()));
-                produto.setQuantidade(atualizarQuantidade);
-                itensPedido.setValor(calcularValorItens(produto.getValor(), dtoItens.getQuantidade()));
-                itensPedido.setQuantidade(quantidadeProdutoPedido);
-                produtoRepository.save(produto);
-            } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há esta quantidade no estoque.");
-            }
+            produto.setQuantidade(verificarDisponibilidadeDoProduto(produto.getQuantidade(), dtoItens.getQuantidade(), produto.getId()));
+            itensPedido.setValor(calcularValorItens(produto.getValor(), dtoItens.getQuantidade()));
+            itensPedido.setQuantidade(dtoItens.getQuantidade());
+            produtoRepository.save(produto);
             return itensPedido;
         }).collect(Collectors.toList());
     }
@@ -163,6 +155,14 @@ public class PedidoService {
         }
 
         return valorTotalNovoPedido;
+    }
+
+    public Integer verificarDisponibilidadeDoProduto(Integer quantidadeDeProdutoNoEstoque, Integer quantidadeDeProdutoPedido, Integer idProduto) {
+        if(quantidadeDeProdutoNoEstoque >= quantidadeDeProdutoPedido) {
+            return quantidadeDeProdutoNoEstoque - quantidadeDeProdutoPedido;
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há esta quantidade do produto "+idProduto+" disponível no estoque");
+        }
     }
 
  
