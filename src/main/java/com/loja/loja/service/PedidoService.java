@@ -74,7 +74,7 @@ public class PedidoService {
             itensPedido.setPedido(pedido);
             itensPedido.setProduto(produto);
             produto.setQuantidade(verificarDisponibilidadeDoProduto(produto.getQuantidade(), dtoItens.getQuantidade(), produto.getId()));
-            itensPedido.setValor(calcularValorItens(produto.getValor(), dtoItens.getQuantidade()));
+            itensPedido.setValor(calcularNovoValorItens(produto.getValor(), dtoItens.getQuantidade()));
             itensPedido.setQuantidade(dtoItens.getQuantidade());
             produtoRepository.save(produto);
             return itensPedido;
@@ -98,15 +98,10 @@ public class PedidoService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Código do pedido inválido."));
         itensPedidoRepository.findById(id).stream().map(itensPedido -> {
             Produto produto = itensPedido.getProduto();
-            if(dtoItem.getQuantidade() != null && !itensPedido.getQuantidade().equals(dtoItem.getQuantidade())) {
-                itensPedido.setQuantidade(dtoItem.getQuantidade());
-            } else {
-                return itensPedido;
-            }
             if(produto.getQuantidade() >= dtoItem.getQuantidade()) {
-                itensPedido.setValor(calcularValorItens(produto.getValor(), dtoItem.getQuantidade()));
-                produto.setQuantidade(produto.getQuantidade() - dtoItem.getQuantidade());
-                itensPedido.setQuantidade(dtoItem.getQuantidade());
+                itensPedido.setValor(calcularValorItens(produto.getValor(), dtoItem.getQuantidade(), itensPedido.getQuantidade()));
+                produto.setQuantidade(calcularNovaQuantidadeProduto(produto.getQuantidade(), dtoItem.getQuantidade()));
+                itensPedido.setQuantidade(quantidadeDeProdutoPedido(dtoItem.getQuantidade(), itensPedido.getQuantidade()));
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não há esta quantidade no estoque");
             }
@@ -129,8 +124,18 @@ public class PedidoService {
     }
 
     //Operational functions.
-    public BigDecimal calcularValorItens(BigDecimal valor, Integer quantidade) {
-        return valor.multiply(new BigDecimal(quantidade));
+    public BigDecimal calcularValorItens(BigDecimal valor, Integer quantidade, Integer quatidadeNoPedido) {
+        if(quantidade < 0) {
+            BigDecimal valorItensTotal = valor.multiply(new BigDecimal(quatidadeNoPedido - Math.abs(quantidade)));
+            return valorItensTotal;
+        } else {
+            BigDecimal valorItensTotal = valor.multiply(new BigDecimal(quatidadeNoPedido + quantidade));
+            return valorItensTotal;
+        }
+    }
+
+    public BigDecimal calcularNovoValorItens(BigDecimal valor, Integer quantidade) {
+       return valor.multiply(new BigDecimal(quantidade));
     }
 
     public BigDecimal calcularValorTotalPedido(Pedido pedido) {
@@ -154,7 +159,7 @@ public class PedidoService {
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 
-        return valorTotalNovoPedido;
+        return  valorTotalNovoPedido;
     }
 
     public Integer verificarDisponibilidadeDoProduto(Integer quantidadeDeProdutoNoEstoque, Integer quantidadeDeProdutoPedido, Integer idProduto) {
@@ -165,5 +170,15 @@ public class PedidoService {
         }
     }
 
- 
+    public Integer calcularNovaQuantidadeProduto(Integer quantidadeProduto, Integer quantidadeProdutoPedido) {
+        return quantidadeProduto - quantidadeProdutoPedido;
+    }
+
+    public Integer quantidadeDeProdutoPedido(Integer quantidadeProdutoPedido, Integer quantidadeNoPedido) {
+        if(quantidadeProdutoPedido < 0 ) {
+            return quantidadeNoPedido - Math.abs(quantidadeProdutoPedido);
+        } else {
+            return quantidadeNoPedido + quantidadeProdutoPedido;
+        }
+    }
 }

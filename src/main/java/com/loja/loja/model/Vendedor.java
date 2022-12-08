@@ -2,11 +2,7 @@ package com.loja.loja.model;
 
 import java.util.List;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 
 import lombok.Data;
@@ -29,5 +25,6 @@ public class Vendedor {
     
     @OneToMany(mappedBy = "vendedor")
     private List<Produto> produto;
+
 
 }
